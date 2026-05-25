@@ -3,6 +3,8 @@ Dashboard Plugin
 
 Installs the Hermes Infrastructure Dashboard backend and frontend,
 then configures the systemd user service.
+
+Dashboard lives at <repo_root>/dashboard/, resolved relative to this plugin file.
 """
 
 import os
@@ -23,6 +25,9 @@ from bootloader.lib.platform import (
     service_config_dir,
 )
 
+# Repo root: plugins/dashboard.py → bootloader/ → repo root
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+
 
 def command_exists(cmd: str) -> bool:
     """Check if a command exists in PATH."""
@@ -37,9 +42,8 @@ def hook_check_prerequisites(context: Dict[str, Any]) -> bool:
     """
     Check if all required tools for dashboard installation are present.
     """
-    user_home = context.get("USER_HOME", os.path.expanduser("~"))
-    backend_dir = Path(user_home) / "ai-platform" / "dashboard" / "backend"
-    frontend_dir = Path(user_home) / "ai-platform" / "dashboard" / "frontend"
+    backend_dir = _REPO_ROOT / "dashboard" / "backend"
+    frontend_dir = _REPO_ROOT / "dashboard" / "frontend"
 
     missing = []
     for cmd in ["node", "npm", "python3", "pip3"]:
@@ -66,9 +70,9 @@ def hook_install(context: Dict[str, Any]) -> Dict[str, Any]:
     print("Installing Dashboard...")
 
     user_home = context.get("USER_HOME", os.path.expanduser("~"))
-    backend_dir = Path(user_home) / "ai-platform" / "dashboard" / "backend"
-    frontend_dir = Path(user_home) / "ai-platform" / "dashboard" / "frontend"
-    systemd_dir = service_config_dir(user_home)
+    backend_dir = _REPO_ROOT / "dashboard" / "backend"
+    frontend_dir = _REPO_ROOT / "dashboard" / "frontend"
+    svc_dir = service_config_dir(user_home)
 
     dry = context.get("dry_run", False)
     created_files = []
@@ -104,7 +108,7 @@ def hook_install(context: Dict[str, Any]) -> Dict[str, Any]:
 
     # Systemd / launchd service setup
     src_svc = backend_dir / "systemd" / "dashboard-backend.service"
-    dst_svc = systemd_dir / "dashboard-backend.service"
+    dst_svc = svc_dir / "dashboard-backend.service"
     if src_svc.exists():
         if dry:
             print(f"[DRY-RUN] Would install service {src_svc} -> {dst_svc}")
@@ -136,8 +140,7 @@ def hook_verify(context: Dict[str, Any]) -> bool:
 
     Plus check frontend dist exists.
     """
-    user_home = context.get("USER_HOME", os.path.expanduser("~"))
-    frontend_dir = Path(user_home) / "ai-platform" / "dashboard" / "frontend"
+    frontend_dir = _REPO_ROOT / "dashboard" / "frontend"
 
     errors = []
 

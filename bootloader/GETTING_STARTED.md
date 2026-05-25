@@ -69,10 +69,10 @@ ssh root@your-server-ip
 
 ```bash
 # Clone the platform repo
-git clone https://github.com/joestechsolutions/hermes-forge.git ~/ai-platform
+git clone https://github.com/joestechsolutions/hermes-forge.git ~/hermes-forge
 
 # Run the bootstrapper
-cd ~/ai-platform/bootloader
+cd ~/hermes-forge/bootloader
 bash bootstrap.sh run --snapshot initial-deploy
 ```
 
@@ -92,7 +92,7 @@ This single command installs everything:
 ### Step 3: Configure Your API Key
 
 ```bash
-nano ~/ai-platform/.env
+nano ~/hermes-forge/.env
 ```
 
 Find your provider section and paste your API key:
@@ -116,7 +116,7 @@ OPENROUTER_API_KEY=sk-or-v1-your-key-here
 ### Step 4: (Optional) Add Telegram
 
 ```bash
-nano ~/ai-platform/.env
+nano ~/hermes-forge/.env
 # Add:
 TELEGRAM_BOT_TOKEN=your-bot-token-from-botfather
 ```
@@ -125,7 +125,7 @@ TELEGRAM_BOT_TOKEN=your-bot-token-from-botfather
 
 ```bash
 systemctl --user restart hermes-gateway
-bash ~/ai-platform/scripts/hermes-health.sh
+bash ~/hermes-forge/scripts/hermes-health.sh
 ```
 
 **Post-install verification:** The health check confirms all services respond correctly, ports are locked down to localhost, and permissions are secure.
@@ -211,7 +211,7 @@ This system is built with zero-trust principles:
 journalctl --user -u hermes-gateway -n 50 --no-pager
 
 # Common fix: wrong API key
-nano ~/ai-platform/.env
+nano ~/hermes-forge/.env
 # Verify your API key is correct
 systemctl --user restart hermes-gateway
 ```
@@ -220,7 +220,7 @@ systemctl --user restart hermes-gateway
 
 ```bash
 # Check if bot token is set
-grep TELEGRAM_BOT_TOKEN ~/ai-platform/.env
+grep TELEGRAM_BOT_TOKEN ~/hermes-forge/.env
 
 # Bot token should be from @BotFather
 # Format: 1234567890:ABCdefGHIjklmNOPqrstUVwxyz
@@ -229,7 +229,7 @@ grep TELEGRAM_BOT_TOKEN ~/ai-platform/.env
 ### "Need to restart everything"
 
 ```bash
-bash ~/ai-platform/scripts/hermes-health.sh    # See what's running
+bash ~/hermes-forge/scripts/hermes-health.sh    # See what's running
 systemctl --user restart hermes-gateway
 systemctl --user restart openclaw-gateway
 docker restart open-webui

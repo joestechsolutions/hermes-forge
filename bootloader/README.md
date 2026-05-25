@@ -3,8 +3,8 @@
 **Your personal AI agent stack. One command. Zero to running in 5 minutes.**
 
 ```bash
-git clone https://github.com/joestechsolutions/hermes-forge.git ~/ai-platform
-cd ~/ai-platform && bash bootstrap.sh run --snapshot my-deploy
+git clone https://github.com/joestechsolutions/hermes-forge.git ~/hermes-forge
+cd ~/hermes-forge && bash bootstrap.sh run --snapshot my-deploy
 ```
 
 Forge your own private AI infrastructure — Hermes Gateway, Dashboard, OpenClaw multi-agent orchestration, local LLMs with Ollama, and a ChatGPT-style UI with OpenWebUI. All locked down, all localhost-only, all yours.
@@ -51,15 +51,15 @@ Pick one provider:
 ssh root@your-server-ip
 
 # Clone and run
-git clone https://github.com/joestechsolutions/ai-platform-bootloader.git ~/ai-platform
-cd ~/ai-platform
+git clone https://github.com/joestechsolutions/ai-platform-bootloader.git ~/hermes-forge
+cd ~/hermes-forge
 bash bootstrap.sh run --snapshot initial-deploy
 ```
 
 ### 4. Configure
 
 ```bash
-nano ~/ai-platform/.env
+nano ~/hermes-forge/.env
 # Paste your API key, save, exit
 
 systemctl --user restart hermes-gateway
@@ -68,7 +68,7 @@ systemctl --user restart hermes-gateway
 ### 5. Verify
 
 ```bash
-bash ~/ai-platform/scripts/hermes-health.sh
+bash ~/hermes-forge/scripts/hermes-health.sh
 # ✅ All 6 services running — or see which ones need attention
 ```
 
@@ -129,7 +129,7 @@ bash ~/ai-platform/scripts/hermes-health.sh
 
 ```bash
 # Check service health
-bash ~/ai-platform/scripts/hermes-health.sh
+bash ~/hermes-forge/scripts/hermes-health.sh
 
 # View logs
 journalctl --user -u hermes-gateway -n 50 --no-pager

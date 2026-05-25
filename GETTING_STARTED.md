@@ -91,10 +91,10 @@ Just open Terminal — you're already there. The bootloader runs natively.
 
 ```bash
 # Clone the platform repo
-git clone https://github.com/joestechsolutions/hermes-forge.git ~/ai-platform
+git clone https://github.com/joestechsolutions/hermes-forge.git ~/hermes-forge
 
 # Run the bootstrapper
-cd ~/ai-platform/bootloader
+cd ~/hermes-forge/bootloader
 bash bootstrap.sh run --snapshot initial-deploy
 ```
 
@@ -114,7 +114,7 @@ This single command installs everything:
 ### Step 3: Configure Your API Key
 
 ```bash
-nano ~/ai-platform/.env
+nano ~/hermes-forge/.env
 ```
 
 Find your provider section and paste your API key:
@@ -138,7 +138,7 @@ OPENROUTER_API_KEY=sk-or-v1-your-key-here
 ### Step 4: (Optional) Add Telegram
 
 ```bash
-nano ~/ai-platform/.env
+nano ~/hermes-forge/.env
 # Add:
 TELEGRAM_BOT_TOKEN=your-bot-token-from-botfather
 ```
@@ -153,7 +153,7 @@ systemctl --user restart hermes-gateway
 brew services restart hermes-gateway
 
 # Check everything is running (works on both platforms):
-bash ~/ai-platform/scripts/hermes-health.sh
+bash ~/hermes-forge/scripts/hermes-health.sh
 ```
 
 **Post-install verification:** The health check confirms all services respond correctly, ports are locked down to localhost, and permissions are secure.
@@ -240,7 +240,7 @@ This system is built with zero-trust principles:
 journalctl --user -u hermes-gateway -n 50 --no-pager
 
 # Common fix: wrong API key
-nano ~/ai-platform/.env
+nano ~/hermes-forge/.env
 systemctl --user restart hermes-gateway
 ```
 
@@ -253,7 +253,7 @@ log show --predicate 'process == "hermes-gateway"' --last 10m
 brew services list
 
 # Common fix: wrong API key
-nano ~/ai-platform/.env
+nano ~/hermes-forge/.env
 brew services restart hermes-gateway
 ```
 
@@ -261,7 +261,7 @@ brew services restart hermes-gateway
 
 ```bash
 # Check if bot token is set
-grep TELEGRAM_BOT_TOKEN ~/ai-platform/.env
+grep TELEGRAM_BOT_TOKEN ~/hermes-forge/.env
 
 # Bot token should be from @BotFather
 # Format: 1234567890:ABCdefGHIjklmNOPqrstUVwxyz
@@ -271,7 +271,7 @@ grep TELEGRAM_BOT_TOKEN ~/ai-platform/.env
 
 **Linux:**
 ```bash
-bash ~/ai-platform/scripts/hermes-health.sh    # See what's running
+bash ~/hermes-forge/scripts/hermes-health.sh    # See what's running
 systemctl --user restart hermes-gateway
 systemctl --user restart openclaw-gateway
 docker restart open-webui
@@ -279,7 +279,7 @@ docker restart open-webui
 
 **macOS:**
 ```bash
-bash ~/ai-platform/scripts/hermes-health.sh    # See what's running
+bash ~/hermes-forge/scripts/hermes-health.sh    # See what's running
 brew services restart hermes-gateway
 brew services restart openclaw-gateway
 docker restart open-webui
@@ -328,8 +328,8 @@ Same one-liner, different internals. You don't need to choose a platform — jus
 | Stop a service | `systemctl --user stop <name>` | `brew services stop <name>` |
 | Start on boot | `systemctl --user enable <name>` | Handled by LaunchAgent plist in `~/Library/LaunchAgents/` |
 | Check firewall rules | `sudo iptables -L` | `sudo pfctl -sr` |
-| Edit environment | `nano ~/ai-platform/.env` | `nano ~/ai-platform/.env` (same) |
-| Run health check | `bash ~/ai-platform/scripts/hermes-health.sh` | `bash ~/ai-platform/scripts/hermes-health.sh` (same) |
+| Edit environment | `nano ~/hermes-forge/.env` | `nano ~/hermes-forge/.env` (same) |
+| Run health check | `bash ~/hermes-forge/scripts/hermes-health.sh` | `bash ~/hermes-forge/scripts/hermes-health.sh` (same) |
 
 ### Path Differences
 

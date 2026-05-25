@@ -141,8 +141,8 @@ def hook_install(context: Dict[str, Any]) -> Dict[str, Any]:
 
     print(f".env written to {env_path}")
 
-    # ── ALSO write a copy to ~/ai-platform/.env for user visibility ──
-    ai_platform_env = os.path.join(user_home, "ai-platform", ".env")
+    # ── ALSO write a copy to ~/hermes-forge/.env for user visibility ──
+    ai_platform_env = os.path.join(user_home, "hermes-forge", ".env")
     try:
         with open(ai_platform_env, "w") as f:
             f.write("# Hermes Agent Environment Configuration\n")

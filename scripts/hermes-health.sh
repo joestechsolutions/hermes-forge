@@ -4,7 +4,7 @@
 #        ~/hermes-health.sh              (from home symlink)
 # Checks all services and reports status
 #
-# Uses $AI_PLATFORM_HOME (defaults to ~/ai-platform) or relative paths.
+# Uses $AI_PLATFORM_HOME (defaults to ~/hermes-forge) or relative paths.
 
 set -uo pipefail
 
