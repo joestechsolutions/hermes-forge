@@ -69,7 +69,7 @@ ssh root@your-server-ip
 
 ```bash
 # Clone the platform repo
-git clone https://github.com/joestechsolutions/ai-platform-bootloader.git ~/ai-platform
+git clone https://github.com/joestechsolutions/hermes-forge.git ~/ai-platform
 
 # Run the bootstrapper
 cd ~/ai-platform/bootloader

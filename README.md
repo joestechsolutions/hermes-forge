@@ -1,13 +1,13 @@
-# Hermes AI Platform Bootloader
+# Hermes Forge
 
-**One command. Your personal AI agent stack. Zero to running in 5 minutes.**
+**Your personal AI agent stack. One command. Zero to running in 5 minutes.**
 
 ```bash
-git clone https://github.com/joestechsolutions/ai-platform-bootloader.git ~/ai-platform
+git clone https://github.com/joestechsolutions/hermes-forge.git ~/ai-platform
 cd ~/ai-platform && bash bootstrap.sh run --snapshot my-deploy
 ```
 
-Build your own private AI infrastructure — Hermes Gateway, Dashboard, OpenClaw multi-agent orchestration, local LLMs with Ollama, and a ChatGPT-style UI with OpenWebUI. All locked down, all localhost-only, all yours.
+Forge your own private AI infrastructure — Hermes Gateway, Dashboard, OpenClaw multi-agent orchestration, local LLMs with Ollama, and a ChatGPT-style UI with OpenWebUI. All locked down, all localhost-only, all yours.
 
 ---
 
@@ -170,9 +170,9 @@ chmod 600 ~/.hermes/.env ~/.hermes/config.yaml
 
 ## Support
 
-- Open a [GitHub Issue](https://github.com/joestechsolutions/ai-platform-bootloader/issues)
+- Open a [GitHub Issue](https://github.com/joestechsolutions/hermes-forge/issues)
 - Contact: [joe@joestechsolutions.com](mailto:joe@joestechsolutions.com)
 
 ---
 
-*Built by [Joe's Tech Solutions](https://github.com/joestechsolutions) — Your personal AI infrastructure, deployable in one command.*
+*Built by [Joe's Tech Solutions](https://github.com/joestechsolutions/hermes-forge) — Forge your own AI infrastructure.*
