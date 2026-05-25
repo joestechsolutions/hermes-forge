@@ -1,0 +1,18 @@
+[Unit]
+Description=Open Design AI Stack (Daemon + Web)
+After=network-online.target ollama.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/lurkr/open-design
+Environment=NODE_ENV=production
+Environment=PATH=/home/lurkr/.hermes/node/bin:/home/lurkr/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/lurkr/.hermes/node/bin/pnpm tools-dev run web --daemon-port 7457 --web-port 4000
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

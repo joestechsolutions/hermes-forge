@@ -1,0 +1,86 @@
+<div class="section">
+  <p class="subtitle">Two independent, production-grade products</p>
+
+  <div class="cards">
+    <div class="card" data-choice="bootloader" onclick="toggleSelect(this)">
+      <div class="card-body">
+        <h3>Bootloader</h3>
+        <p style="font-size: 0.85rem; color: #aaa; margin-top: 4px">Provisioning automation</p>
+        <ul style="margin-top: 12px; padding-left: 16px; color: #d1d5db;">
+          <li>Installs entire agentic infrastructure from scratch</li>
+          <li>10+ plugins covering system, Node.js, Docker, Ollama, GitNexus, OpenCode, Hermes, OpenClaw, Open Design, MemPalace, security hardening</li>
+          <li>Idempotent: safe to re-run, skips what's already done</li>
+          <li>Stateful: tracks progress per-plugin per-phase</li>
+          <li>Snapshot + restore capabilities</li>
+          <li>Designed for: fresh machine provisioning / disaster recovery</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" data-choice="dashboard" onclick="toggleSelect(this)">
+      <div class="card-body">
+        <h3>Diagnostic Dashboard</h3>
+        <p style="font-size: 0.85rem; color: #aaa; margin-top: 4px">Infrastructure monitoring & control</p>
+        <ul style="margin-top: 12px; padding-left: 16px; color: #d1d5db;">
+          <li>Real-time system metrics (CPU, Memory, Disk, GPU) via WebSocket</li>
+          <li>Service status monitoring (systemd + Docker)</li>
+          <li>Log viewer tails from journalctl</li>
+          <li>Snapshot management (create + restore)</li>
+          <li>Security audit (port exposure, file permissions, Ollama bridge)</li>
+          <li>Designed for: day-2 operations, incident response, monitoring</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 24px">
+  <h2>Key shared context</h2>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>Shared infrastructure</h4>
+      <ul>
+        <li>Both target joBlade (WSL2 Ubuntu)</li>
+        <li>Both manage ~/.hermes, ~/.openclaw, ~/.mempalace, /srv/ai-stack</li>
+        <li>StateManager (snapshot/restore) is a shared concept</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>Independent boundaries</h4>
+      <ul>
+        <li>Different repos — no shared Python packages</li>
+        <li>Bootloader: run-once provisioning; Dashboard: always-on monitoring</li>
+        <li>Bootloader can install the Dashboard as one of its plugin steps</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 16px; border-left: 3px solid #00dc82; padding-left: 16px;">
+  <p class="label" style="color: #00dc82">First question</p>
+  <p style="color: #d1d5db; margin-top: 4px;">Before the visual questions: what's the target environment for both tools?</p>
+
+  <div class="options" data-multiselect style="margin-top: 12px">
+    <div class="option" data-choice="joBlade-only" onclick="toggleMulti(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>joBlade only (current host)</h3>
+        <p>Hardcoded for WSL2 / joBlade. Fastest path to working software.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="portable" onclick="toggleMulti(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Portable (any Linux / WSL2)</h3>
+        <p>Detects environment, adapts paths, works on native Linux, Ubuntu in WSL, etc.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="cloud-ready" onclick="toggleMulti(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Containerized & cloud-ready</h3>
+        <p>Docker-based setup that works on any host. Dashboard served in-browser; Bootloader runs inside container or on bare metal.</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,18 @@
+[Unit]
+Description=Hermes Infrastructure Diagnostic Dashboard Backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/lurkr/ai-platform/dashboard/backend
+Environment="PATH=/home/lurkr/ai-platform/dashboard/backend/venv/bin:/home/lurkr/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/home/lurkr/ai-platform"
+ExecStart=/home/lurkr/ai-platform/dashboard/backend/venv/bin/python main.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,55 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.9.2
+    container_name: open-webui
+    ports:
+      - "127.0.0.1:3000:8080"
+    volumes:
+      - open-webui-data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - WEBUI_AUTH=true
+      - ENABLE_SIGNUP=false
+      - DEFAULT_MODELS=granite4.1:8b
+      - WEBUI_NAME=Joe's Local AI
+      # Disable all telemetry and analytics
+      - SCARF_NO_ANALYTICS=true
+      - DO_NOT_TRACK=true
+      - ANONYMIZED_TELEMETRY=false
+      - ENABLE_OLLAMA_API=false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+    networks:
+      - webui-net
+
+volumes:
+  open-webui-data:
+
+networks:
+  webui-net:
+    driver: bridge
+    internal: false

@@ -1,178 +1,80 @@
-# Hermes Forge
+# AI Platform
 
-**Your personal AI agent stack. One command. Zero to running in 5 minutes.**
-
-```bash
-git clone https://github.com/joestechsolutions/hermes-forge.git ~/ai-platform
-cd ~/ai-platform && bash bootstrap.sh run --snapshot my-deploy
-```
-
-Forge your own private AI infrastructure — Hermes Gateway, Dashboard, OpenClaw multi-agent orchestration, local LLMs with Ollama, and a ChatGPT-style UI with OpenWebUI. All locked down, all localhost-only, all yours.
-
----
-
-## What You Get
-
-| Service | Purpose | Port |
-|---------|---------|------|
-| **Hermes Gateway** | Your personal AI assistant — CLI + Telegram | 8642 |
-| **Dashboard** | Live system monitor (web UI with real-time metrics) | 8643 |
-| **OpenClaw** | Multi-agent orchestration team (24 sub-agents) | 18789 |
-| **fcc Proxy** | Smart API routing to any provider | 8082 |
-| **Ollama** | Local LLMs — no internet needed | 11434 |
-| **OpenWebUI** | ChatGPT-style interface for local models | 3000 |
-
----
+Multi-agent AI architecture with Hermes, OpenClaw, Open Design, and OpenWebUI.
 
 ## Quick Start
 
-### 1. Get a Server
-
-Any Linux machine with **4GB RAM / 20GB storage**:
-- Hostinger VPS ($12/mo)
-- Hetzner CX22 ($5/mo)
-- DigitalOcean Basic Droplet ($24/mo)
-- Or your own machine
-
-### 2. Get an API Key
-
-Pick one provider:
-
-| Provider | Cost | Sign Up |
-|----------|------|---------|
-| **OpenRouter** ⭐ | ~$0.50/mo light use | [openrouter.ai/keys](https://openrouter.ai/keys) |
-| **NVIDIA NIM** | Free tier available | [build.nvidia.com](https://build.nvidia.com) |
-| **DeepSeek** | $0.14/million tokens | [platform.deepseek.com](https://platform.deepseek.com) |
-| **Ollama (local)** | Free | No key needed |
-
-### 3. Deploy
-
+### Recovery from scratch:
 ```bash
-ssh root@your-server-ip
-
-# Clone and run
-git clone https://github.com/joestechsolutions/ai-platform-bootloader.git ~/ai-platform
-cd ~/ai-platform
-bash bootstrap.sh run --snapshot initial-deploy
+bash scripts/bootloader.sh
 ```
 
-### 4. Configure
-
+### Current state:
 ```bash
-nano ~/ai-platform/.env
-# Paste your API key, save, exit
-
-systemctl --user restart hermes-gateway
+cat STATE.md
 ```
 
-### 5. Verify
-
+### Health check:
 ```bash
-~/hermes-health.sh
-# ✅ All 6 services running
+bash scripts/hermes-health.sh
 ```
 
----
+**Post-install verification:** Run the health check script to confirm all services are up, ports are locked down, and file permissions are correct. A clean output means your stack is ready to use.
 
-## Architecture
-
-```
-                         ┌──────────────────────┐
-                         │  Telegram / CLI       │
-                         └──────┬───────────────┘
-                                │
-                    ┌───────────▼───────────┐
-                    │   Hermes Gateway      │
-                    │   Port 8642           │
-                    └───────┬──────┬────────┘
-                            │      │
-        ┌───────────────────┘      └────────────┐
-        │                                       │
-┌───────▼───────────┐               ┌───────────▼──────────┐
-│  OpenClaw Agents  │               │  fcc Proxy (:8082)   │
-│  Port 18789       │               │  Claude CLI Router   │
-└───────────────────┘               └───────┬──────────────┘
-                                            │
-                    ┌───────────────────────┼──────────┐
-                    │                       │          │
-              ┌─────▼─────┐          ┌──────▼─────┐    │
-              │ NVIDIA NIM │          │ OpenRouter │    │
-              │  (Primary) │          │ (Fallback) │    │
-              └───────────┘          └────────────┘    │
-                                              ┌───────▼──────┐
-                                              │  Ollama      │
-                                              │  (Local)     │
-                                              └──────────────┘
-```
-
-## Security
-
-| Feature | Protection |
-|---------|-----------|
-| Services bind | 127.0.0.1 only — no external ports |
-| Config files | 600 permissions — owner read/write only |
-| Firewall | Default DROP policy on INPUT |
-| Docker | Rootless, no-new-privileges, read-only fs |
-| Telemetry | Disabled everywhere |
-| API keys | In `.env` files, never in code |
-
-## Cost Breakdown
-
-| Tier | Monthly | Setup |
-|------|---------|-------|
-| **Free** — Local Ollama + free-tier APIs | $0 | Server only |
-| **Light** — Chat, coding help, daily use | ~$0.50-2 | Server + OpenRouter |
-| **Moderate** — Agent teams, automation | ~$5-10 | Server + NVIDIA/DeepSeek |
-| **Heavy** — Full production | ~$15-30 | Server + premium providers |
-
-## Customization
-
-Edit `~/free-claude-code/.env` to change models:
-
+### Backup:
 ```bash
-# Budget-friendly
-MODEL="openrouter/nvidia/nemotron-3-nano-30b-a3b:free"
-
-# Premium
-MODEL="openrouter/anthropic/claude-sonnet-4"
-
-# Local-only
-MODEL="ollama/granite4.1:8b"
+bash scripts/hermes-backup.sh
 ```
 
-## Troubleshooting
+## Structure
+```
+ai-platform/
+├── README.md              # This file
+├── STATE.md               # Current state snapshot
+├── QUICK-REF.md           # Emergency recovery commands
+├── blueprints/
+│   └── ARCHITECTURE.md    # Full architecture docs
+├── configs/
+│   ├── hermes-gateway.service
+│   ├── open-design.service
+│   ├── openclaw-gateway.service
+│   ├── ollama-override.conf  # Ollama systemd override (CRITICAL)
+│   └── docker-compose.yml
+└── scripts/
+    ├── bootloader.sh      # Full automated setup
+    ├── hermes-backup.sh
+    └── hermes-health.sh
+```
 
+## Components
+- **Hermes** - Messaging gateway (Telegram) + terminal agent
+- **OpenClaw** - Multi-agent system (30+ agents)
+- **Open Design** - Design AI stack
+- **OpenWebUI** - Web UI for local LLMs (Docker)
+- **Ollama** - Local model inference (RTX 2060 GPU)
+
+## Critical Rules
+1. All services bind to 127.0.0.1 only
+2. Telegram handled by Hermes only (OpenClaw Telegram disabled)
+3. Ollama Docker bridge disabled
+4. File permissions: 600 for secrets, 700 for sensitive dirs
+5. Pinned Docker images (no latest tags)
+6. **Ollama models MUST be on Linux filesystem** (`/var/lib/ollama/`), NOT `/mnt/d/` (too slow, causes timeouts)
+
+## Ollama Setup (After Bootloader)
 ```bash
-# Check service health
-~/hermes-health.sh
+# 1. Apply systemd override
+sudo cp configs/ollama-override.conf /etc/systemd/system/ollama.service.d/override.conf
+sudo sed -i "s/User=lurkr/User=${USER}/" /etc/systemd/system/ollama.service.d/override.conf
+sudo sed -i "s/Group=lurkr/Group=${USER}/" /etc/systemd/system/ollama.service.d/override.conf
 
-# View logs
-journalctl --user -u hermes-gateway -n 50 --no-pager
+# 2. Create model storage
+sudo mkdir -p /var/lib/ollama
+sudo chown ${USER}:${USER} /var/lib/ollama
 
-# Restart everything
-systemctl --user restart hermes-gateway
-systemctl --user restart openclaw-gateway
-docker restart open-webui
+# 3. Pull models
+ollama pull granite4.1:8b
 
-# Fix permissions
-chmod 600 ~/.hermes/.env ~/.hermes/config.yaml
+# 4. Restart
+sudo systemctl daemon-reload && sudo systemctl restart ollama
 ```
-
----
-
-## Roadmap
-
-- [ ] Fresh VM CI/CD pipeline — automatic smoke test on new VPS
-- [ ] One-liner curl install (no git clone needed)
-- [ ] Web-based setup wizard for non-technical users
-- [ ] Managed hosting option (deploy + manage for clients)
-- [ ] Plugin marketplace
-
-## Support
-
-- Open a [GitHub Issue](https://github.com/joestechsolutions/hermes-forge/issues)
-- Contact: [joe@joestechsolutions.com](mailto:joe@joestechsolutions.com)
-
----
-
-*Built by [Joe's Tech Solutions](https://github.com/joestechsolutions/hermes-forge) — Forge your own AI infrastructure.*
