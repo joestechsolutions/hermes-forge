@@ -111,9 +111,11 @@ def collect_system_metrics() -> SystemMetrics:
     )
 
 # Static file serving for React SPA frontend
-frontend_dist = "/home/lurkr/ai-platform/dashboard/frontend/dist"
-if os.path.isdir(frontend_dist):
-    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+# Resolve relative to this file (dashboard/backend/main.py → ../../frontend/dist) so the
+# dashboard works regardless of the user's home directory.
+frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
