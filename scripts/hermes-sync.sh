@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 #
 # hermes-sync.sh — Daily auto-commit + push to GitHub
-# Runs at midnight via cron: 0 0 * * * /home/lurkr/ai-platform/scripts/hermes-sync.sh
+# Runs at midnight via cron: 0 0 * * * ~/ai-platform/scripts/hermes-sync.sh
+# (USER_HOME variable below resolves to $HOME for any user.)
 #
 # PUSH_ALL=true  — also include ~/.hermes state files (state.db, sessions, snapshots)
 # PUSH_ALL=false — only ai-platform code/config dirs
 #
 set -euo pipefail
 
-REPO_DIR="/home/lurkr/ai-platform"
+USER_HOME="${HOME}"
+REPO_DIR="${USER_HOME}/ai-platform"
 REMOTE="origin"
 BRANCH="main"
-USER_HOME="${HOME}"
 PUSH_ALL="${PUSH_ALL:-true}"
 
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
