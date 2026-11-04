@@ -5,6 +5,7 @@ from pydantic import BaseModel
 class ServiceStatus(BaseModel):
     name: str
     state: str
+    kind: str = "systemd"
     port: Optional[int] = None
     uptime: Optional[str] = None
     last_log: Optional[str] = None

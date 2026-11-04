@@ -12,15 +12,23 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 import psutil
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
+from websockets.exceptions import ConnectionClosed
 
 from dashboard.backend.models import ServiceStatus, SystemMetrics, SnapshotInfo
 from dashboard.backend.services import systemd as systemd_services
 from dashboard.backend.api.routes import router as api_router
+from dashboard.backend.services.auth_routes import auth_router, AuthGateMiddleware
 
 app = FastAPI(title="Hermes Infrastructure Dashboard", version="2.0.0")
+
+# ── Magic-link auth gate (public tunnel protection) ─────────────────────────
+# Order matters: middleware wraps everything below it.
+app.add_middleware(AuthGateMiddleware)
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,7 +49,8 @@ class ConnectionManager:
         self.active_connections.append(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
 
     async def broadcast(self, message: Dict[str, Any]):
         for connection in self.active_connections:
@@ -60,15 +69,22 @@ manager = ConnectionManager()
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
+@app.get("/api/v1/system/metrics")
+async def system_metrics_rest():
+    """REST fallback for metrics when WebSocket passthrough is unavailable (e.g. tunnels)."""
+    return await asyncio.to_thread(collect_system_metrics)
+
 @app.websocket("/ws/metrics")
 async def websocket_metrics(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            metrics = collect_system_metrics()
-            await websocket.send_json(metrics.dict())
+            metrics = await asyncio.to_thread(collect_system_metrics)
+            await websocket.send_json(jsonable_encoder(metrics))
             await asyncio.sleep(2)
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, ConnectionClosed):
+        pass
+    finally:
         manager.disconnect(websocket)
 
 def collect_system_metrics() -> SystemMetrics:
@@ -110,8 +126,8 @@ def collect_system_metrics() -> SystemMetrics:
         timestamp=datetime.utcnow()
     )
 
-# Static file serving for React SPA frontend
-frontend_dist = "/home/lurkr/ai-platform/dashboard/frontend/dist"
+# Static file serving for the React SPA. Tests/preview can select an isolated build.
+frontend_dist = os.environ.get("DASHBOARD_FRONTEND_DIST", "/home/lurkr/ai-platform/dashboard/frontend/dist")
 if os.path.isdir(frontend_dist):
     app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
 

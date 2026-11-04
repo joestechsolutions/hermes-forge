@@ -1,0 +1,70 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Sign in — JTS Command Center</title>
+<link rel='icon' type='image/png' href='/logo-icon-48.png'>
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap' rel='stylesheet'>
+<style>body{background:#071317;color:#d9ece9;font-family:Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.card{background:#0c1e22;border:1px solid #1e383b;padding:2.5rem 2rem;max-width:340px;width:calc(100% - 2rem);text-align:center}
+.mark{display:flex;align-items:center;justify-content:center;gap:.4rem}
+.jts{color:#02a0a0;font-size:2.4rem;font-weight:800;letter-spacing:.08em;line-height:1}
+.pix{width:.55rem;height:.55rem;background:#ffbd65;display:inline-block}
+.sub{color:#5d7573;font-size:.65rem;letter-spacing:.22em;margin:.75rem 0 1.75rem;text-transform:uppercase}
+p{color:#8fa8a5;font-size:.85rem}
+input{width:100%;padding:12px;background:#071317;border:1px solid #1e383b;color:#d9ece9;font-family:'JetBrains Mono',monospace;box-sizing:border-box;font-size:1rem;outline:none;text-align:center}
+input:focus{border-color:#02a0a0}
+input.code{letter-spacing:.5em;font-size:1.4rem;padding:12px 0 12px .5em}
+button{width:100%;margin-top:10px;padding:12px;background:#02a0a0;color:#04110f;border:0;font-family:Inter,sans-serif;font-weight:700;cursor:pointer;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
+button:disabled{opacity:.6;cursor:wait}
+.link{background:none;border:0;color:#5d7573;font-size:.7rem;letter-spacing:.1em;cursor:pointer;text-transform:uppercase;text-decoration:underline;margin-top:10px;padding:0}
+#msg{color:#3ddc84;font-size:12px;min-height:18px;font-family:'JetBrains Mono',monospace}
+#err{color:#ff6b6b;font-size:12px;min-height:16px;font-family:'JetBrains Mono',monospace}
+.step{display:none}.step.on{display:block}
+</style></head>
+<body><div class='card'>
+<div class='mark'><span class='jts'>JTS</span><span class='pix'></span></div>
+<div class='sub'>Joe's Tech Solutions · Command Center</div>
+
+<div id='step1' class='step on'>
+<p>Enter your email to receive a sign-in code.</p>
+<form id='f1'>
+<input id='e' type='email' required placeholder='you@yourdomain.com' autocomplete='email'>
+<button id='b1'>SEND CODE</button>
+</form>
+<p id='msg'></p>
+</div>
+
+<div id='step2' class='step'>
+<p>Enter the 6-digit code sent to <b id='who'></b></p>
+<form id='f2'>
+<input id='c' class='code' inputmode='numeric' pattern='[0-9]*' maxlength='6' autocomplete='one-time-code' placeholder='——————' required>
+<button id='b2'>SIGN IN</button>
+</form>
+<button id='back' class='link' type='button'>← different email / resend</button>
+<p id='err'></p>
+</div>
+
+</div>
+<script>
+var email='';
+function show(n){document.querySelectorAll('.step').forEach(function(s){s.classList.remove('on')});document.getElementById('step'+n).classList.add('on')}
+document.getElementById('f1').onsubmit=function(){
+  var b=document.getElementById('b1');b.disabled=true;b.textContent='SENDING…';
+  email=document.getElementById('e').value.trim();
+  fetch('/api/auth/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+  .then(function(r){return r.json()}).then(function(){
+    document.getElementById('who').textContent=email;
+    document.getElementById('msg').textContent='';
+    document.getElementById('c').focus();
+    show(2);
+  }).catch(function(){b.textContent='SEND CODE';b.disabled=false});
+  return false};
+document.getElementById('back').onclick=function(){show(1);document.getElementById('b1').disabled=false;document.getElementById('b1').textContent='SEND CODE';document.getElementById('err').textContent=''};
+document.getElementById('f2').onsubmit=function(){
+  var b=document.getElementById('b2');b.disabled=true;b.textContent='VERIFYING…';
+  var code=document.getElementById('c').value.trim();
+  fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,code:code})})
+  .then(function(r){if(r.ok){window.location.href='/';}else{return r.json().then(function(){document.getElementById('err').textContent='✗ Invalid or expired code — try again';b.textContent='SIGN IN';b.disabled=false})}})
+  .catch(function(){document.getElementById('err').textContent='Network error';b.textContent='SIGN IN';b.disabled=false});
+  return false};
+</script>
+</body></html>
