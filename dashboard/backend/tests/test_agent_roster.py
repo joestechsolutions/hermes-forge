@@ -15,7 +15,7 @@ def test_ledger_is_visible_without_work_record(tmp_path):
     assert data["agents"][0]["role"] == "RenFaire Revenue Analyst"
     assert data["agents"][0]["status"] == "ready"
     assert data["agents"][0]["scheduled_jobs"] == 0
-    assert data["agents"][0]["current_work"] == "Ready — no work recorded yet"
+    assert data["agents"][0]["current_work"] == "No recorded sessions or job results"
 
 
 def test_roster_reads_profile_jobs_and_failures_without_prompt_contents(tmp_path):

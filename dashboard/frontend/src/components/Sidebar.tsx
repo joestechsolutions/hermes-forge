@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import RuntimeStatus from './RuntimeStatus';
 
 export type NavItem =
+  | 'agents'
   | 'dashboard'
   | 'services'
   | 'models'
@@ -18,6 +19,7 @@ interface Props {
 }
 
 const navItems: { id: NavItem; label: string }[] = [
+  { id: 'agents', label: 'Agents' },
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'briefings', label: 'Command Center' },
   { id: 'services', label: 'Services' },
