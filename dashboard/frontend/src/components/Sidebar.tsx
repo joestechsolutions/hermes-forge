@@ -100,6 +100,9 @@ export default function Sidebar({ active, onNavigate, mobileOpen, onCloseMobile 
         {/* Bottom status */}
         <div className="px-4 py-3 border-t border-[#1e383b]">
           <RuntimeStatus />
+          <a href="/api/auth/logout" className="mt-3 min-h-11 flex items-center justify-center rounded-xl border border-[#1e383b] text-[#8fa8a5] text-xs hover:text-[#d9ece9] hover:border-[#02a0a0]/40">
+            Sign out
+          </a>
           <div className="text-[#5d7573] text-[10px]">v2.0.0</div>
         </div>
       </aside>

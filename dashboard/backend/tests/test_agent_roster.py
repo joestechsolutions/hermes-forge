@@ -58,3 +58,25 @@ def test_new_profile_is_discovered_without_a_code_change(tmp_path):
     data = roster(tmp_path)
     assert data["count"] == 3
     assert [a["name"] for a in data["agents"]] == ["Ledger", "Sparrow", "New Bot"]
+
+
+def test_shared_scheduler_results_are_attributed_to_real_owners(tmp_path):
+    for key in ("ledger", "sterlingcfo", "novacmo"):
+        profile = tmp_path / "profiles" / key
+        profile.mkdir(parents=True)
+        (profile / "profile.yaml").write_text(f"display_name: {key}\n")
+    jobs = [
+        {"id": "aff", "name": "renfaire_affiliate_watch", "enabled": True, "state": "scheduled", "last_status": "ok", "last_run_at": "2026-11-04T14:51:51-08:00"},
+        {"id": "cfo", "name": "jts_cfo_weekly_review", "skill": "jts-cfo", "enabled": True, "state": "scheduled", "last_status": "ok"},
+        {"id": "draft", "name": "content_draft", "skill": "joe-content-lane", "enabled": True, "state": "scheduled", "last_status": "ok"},
+    ]
+    import json
+    cron = tmp_path / "cron"
+    cron.mkdir()
+    (cron / "jobs.json").write_text(json.dumps({"jobs": jobs}))
+    agents = {a["id"]: a for a in roster(tmp_path)["agents"]}
+    assert agents["ledger"]["scheduled_jobs"] == 1
+    assert agents["ledger"]["current_work"] == "Latest result: renfaire_affiliate_watch"
+    assert agents["ledger"]["last_work_at"] == "2026-11-04T14:51:51-08:00"
+    assert agents["sterlingcfo"]["scheduled_jobs"] == 1
+    assert agents["novacmo"]["scheduled_jobs"] == 1

@@ -26,6 +26,15 @@ ROLES = {
     "ledger": ("Ledger", "RenFaire Revenue Analyst", ()),
     "sparrow": ("Sparrow", "Research Assistant", ()),
 }
+JOB_SKILL_OWNERS = {
+    "jts-cfo": "sterlingcfo",
+    "joe-content-lane": "novacmo",
+    "renfaire-content-lane": "novacmo",
+    "renfaire-directory-site": "kairovpengineering",
+}
+JOB_NAME_OWNERS = {
+    "renfaire_affiliate_watch": "ledger",
+}
 
 
 def _profile_meta(profile: Path) -> tuple[str, str, str]:
@@ -102,16 +111,24 @@ def roster(home: Path | None = None) -> dict[str, Any]:
         name, role, description = _profile_meta(profile)
         prefixes = ROLES.get(key, (name, role, ()))[2]
         jobs = _profile_jobs(profile)
-        if not jobs and prefixes:
-            jobs = [j for j in shared if j.get("profile") == key or j.get("name", "").lower().startswith(prefixes)]
+        owned: dict[str, dict[str, Any]] = {str(j.get("id") or j.get("name")): j for j in jobs}
+        for job in shared:
+            job_name = str(job.get("name", ""))
+            owner = job.get("profile") or JOB_NAME_OWNERS.get(job_name) or JOB_SKILL_OWNERS.get(str(job.get("skill") or ""))
+            if not owner and prefixes and job_name.lower().startswith(prefixes):
+                owner = key
+            if owner == key:
+                owned[str(job.get("id") or job_name)] = job
+        jobs = list(owned.values())
         enabled = [j for j in jobs if j.get("enabled", True) and j.get("state") not in ("paused", "completed")]
         failing = [j for j in enabled if (j.get("failure_streak") or 0) > 0 or j.get("last_status") not in (None, "ok", "success")]
         work = _latest_work(profile)
         last_runs = [j["last_run_at"] for j in jobs if isinstance(j.get("last_run_at"), str)]
         latest = max(last_runs, default=None)
+        latest_job = max((j for j in jobs if isinstance(j.get("last_run_at"), str)), key=lambda j: j["last_run_at"], default=None)
         upcoming = sorted((j for j in enabled if isinstance(j.get("next_run_at"), str)), key=lambda j: j["next_run_at"])
         status = "needs-attention" if failing else "completed" if work["summary"] or latest else "ready"
-        current_work = work["summary"] or ("Latest scheduled result recorded" if latest else "Ready — no work recorded yet")
+        current_work = work["summary"] or (f"Latest result: {latest_job.get('name')}" if latest_job else "Ready — no work recorded yet")
         cards.append({
             "id": key, "name": name, "role": role, "description": description,
             "status": status, "current_work": current_work,
