@@ -1,7 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
-  height: 100%;
+:root {
+  color-scheme: dark;
+  background: #071317;
+  font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+}
+
+html, body, #root { min-height: 100%; }
+html { background: #071317; }
+body { margin: 0; background: #071317; }
+button, a, select { touch-action: manipulation; }
+button, a, select, input { -webkit-tap-highlight-color: rgba(2, 160, 160, .18); }
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid #4ecdc4;
+  outline-offset: 3px;
+}
+pre, code, .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+::selection { color: #d9ece9; background: rgba(2, 160, 160, .4); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

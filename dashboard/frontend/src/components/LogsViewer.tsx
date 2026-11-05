@@ -32,12 +32,12 @@ export default function LogsViewer({ service }: Props) {
   }, [service]);
 
   return (
-    <div className="h-64 bg-hermes-card border border-hermes-border rounded p-2 overflow-auto font-mono text-xs text-gray-300">
-      {loading && <div className="p-2">Loading logs...</div>}
-      {error && <div className="p-2 text-red-500">{error}</div>}
-      {!loading && logs.length === 0 && <div className="p-2">No logs available.</div>}
+    <div className="bg-[#071317] border border-[#1e383b] rounded p-2 overflow-auto font-mono text-[12px] text-[#8fa8a5]">
+      {loading && <div className="p-2 text-[#5d7573]">Loading logs...</div>}
+      {error && <div className="p-2 text-[#ff4444]">{error}</div>}
+      {!loading && logs.length === 0 && <div className="p-2 text-[#5d7573]">No logs available.</div>}
       {logs.map((line, i) => (
-        <div key={i}>{line}</div>
+        <div key={i} className="leading-relaxed hover:bg-[#10262b]/50">{line}</div>
       ))}
     </div>
   );

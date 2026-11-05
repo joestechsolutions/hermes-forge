@@ -3,8 +3,6 @@ import pytest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
 from dashboard.backend.services.agent_status import (
     check_hermes_agent,
     check_opencode,
@@ -17,17 +15,17 @@ from dashboard.backend.services.agent_status import (
 # --- Hermes tests ---
 
 
-@patch("backend.services.agent_status.subprocess.run")
+@patch("dashboard.backend.services.agent_status.subprocess.run")
 def test_check_hermes_running(mock_run):
-    mock_run.return_value = MagicMock(stdout="ActiveState=active\nLOAD_STATE=loaded\n")
+    mock_run.return_value = MagicMock(returncode=0, stdout="ActiveState=active\nLOAD_STATE=loaded\n")
     result = check_hermes_agent()
     assert result["agent"] == "hermes"
     assert result["status"] == "active"
 
 
-@patch("backend.services.agent_status.subprocess.run")
+@patch("dashboard.backend.services.agent_status.subprocess.run")
 def test_check_hermes_stopped(mock_run):
-    mock_run.return_value = MagicMock(stdout="ActiveState=inactive\nLOAD_STATE=loaded\n")
+    mock_run.return_value = MagicMock(returncode=0, stdout="ActiveState=inactive\nLOAD_STATE=loaded\n")
     result = check_hermes_agent()
     assert result["agent"] == "hermes"
     assert result["status"] == "stopped"
@@ -36,13 +34,13 @@ def test_check_hermes_stopped(mock_run):
 # --- OpenCode tests ---
 
 
-@patch("backend.services.agent_status.shutil.which")
+@patch("dashboard.backend.services.agent_status.shutil.which")
 def test_check_opencode_found(mock_which):
     """OpenCode found but no session dir or pgrep returns empty."""
     mock_which.return_value = "/usr/bin/opencode"
-    with patch("backend.services.agent_status.subprocess.run") as mock_run:
+    with patch("dashboard.backend.services.agent_status.subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0, stdout="1234 opencode")
-        with patch("backend.services.agent_status.Path") as mock_path_cls:
+        with patch("dashboard.backend.services.agent_status.Path") as mock_path_cls:
             # session_dir.exists() -> False
             mock_session_dir = MagicMock(spec=Path)
             mock_session_dir.exists.return_value = False
@@ -55,7 +53,7 @@ def test_check_opencode_found(mock_which):
     assert result["path"] == "/usr/bin/opencode"
 
 
-@patch("backend.services.agent_status.shutil.which")
+@patch("dashboard.backend.services.agent_status.shutil.which")
 def test_check_opencode_not_found(mock_which):
     mock_which.return_value = None
     result = check_opencode()
@@ -66,10 +64,10 @@ def test_check_opencode_not_found(mock_which):
 # --- Claude Code tests ---
 
 
-@patch("backend.services.agent_status.shutil.which")
+@patch("dashboard.backend.services.agent_status.shutil.which")
 def test_check_claude_code_found(mock_which):
     mock_which.return_value = "/usr/local/bin/claude"
-    with patch("backend.services.agent_status.subprocess.run") as mock_run:
+    with patch("dashboard.backend.services.agent_status.subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(
             returncode=0,
             stdout="1234 /usr/local/bin/claude --something"
@@ -80,7 +78,7 @@ def test_check_claude_code_found(mock_which):
     assert result["path"] == "/usr/local/bin/claude"
 
 
-@patch("backend.services.agent_status.shutil.which")
+@patch("dashboard.backend.services.agent_status.shutil.which")
 def test_check_claude_code_not_found(mock_which):
     mock_which.return_value = None
     result = check_claude_code()
@@ -91,8 +89,8 @@ def test_check_claude_code_not_found(mock_which):
 # --- MemPalace tests ---
 
 
-@patch("backend.services.agent_status.subprocess.run")
-@patch("backend.services.agent_status.Path")
+@patch("dashboard.backend.services.agent_status.subprocess.run")
+@patch("dashboard.backend.services.agent_status.Path")
 def test_check_mempalace_found_venv(mock_path_cls, mock_run):
     mock_run.return_value = MagicMock(returncode=0)
 
@@ -121,7 +119,7 @@ def test_check_mempalace_found_venv(mock_path_cls, mock_run):
     assert result["venv_ready"] is True
 
 
-@patch("backend.services.agent_status.Path")
+@patch("dashboard.backend.services.agent_status.Path")
 def test_check_mempalace_not_found(mock_path_cls):
     mock_mempalace = MagicMock(spec=Path)
     mock_mempalace.exists.return_value = False
@@ -136,10 +134,10 @@ def test_check_mempalace_not_found(mock_path_cls):
 # --- check_all_agents test ---
 
 
-@patch("backend.services.agent_status.check_mempalace")
-@patch("backend.services.agent_status.check_claude_code")
-@patch("backend.services.agent_status.check_opencode")
-@patch("backend.services.agent_status.check_hermes_agent")
+@patch("dashboard.backend.services.agent_status.check_mempalace")
+@patch("dashboard.backend.services.agent_status.check_claude_code")
+@patch("dashboard.backend.services.agent_status.check_opencode")
+@patch("dashboard.backend.services.agent_status.check_hermes_agent")
 def test_check_all_agents(mock_hermes, mock_opencode, mock_claude, mock_mempalace):
     mock_hermes.return_value = {"agent": "hermes", "status": "active", "state_db_age": None}
     mock_opencode.return_value = {"agent": "opencode", "status": "idle", "path": "/bin/opencode", "sessions": None}

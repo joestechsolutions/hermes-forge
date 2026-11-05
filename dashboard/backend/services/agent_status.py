@@ -10,13 +10,15 @@ def check_hermes_agent() -> Dict[str, Any]:
     """Check Hermes agent service status via systemctl."""
     try:
         result = subprocess.run(
-            ["systemctl", "--user", "show", "hermes-gateway", "--output=env", "--no-pager"],
+            ["systemctl", "--user", "show", "hermes-gateway", "--property=ActiveState", "--value", "--no-pager"],
             capture_output=True, text=True, timeout=5
         )
+        if result.returncode != 0:
+            return {"agent": "hermes", "status": "error"}
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return {"agent": "hermes", "status": "error"}
 
-    state_line = ""
+    state_line = result.stdout.strip()
     for line in result.stdout.split("\n"):
         if line.startswith("SERVICE_STATE="):
             state_line = line.split("=", 1)[1]

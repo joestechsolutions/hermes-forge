@@ -1,15 +1,18 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Query
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
+import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from dashboard.backend.models import ServiceStatus, SnapshotInfo
 from dashboard.backend.services.systemd import (
     check_systemd_service,
     check_docker_containers,
+    managed_service_names,
     tail_systemd_logs,
+    tail_docker_logs,
     run_systemctl_command,
     run_security_audit,
     validate_all_configs,
@@ -38,23 +41,35 @@ class RestoreSnapshotResponse(BaseModel):
 
 @router.get("/services", response_model=List[ServiceStatus])
 async def get_services():
-    services = []
-    for svc in ["hermes-gateway", "open-design", "openclaw-gateway"]:
-        status = await check_systemd_service(svc)
-        services.append(status)
+    names = await managed_service_names()
+    services = await asyncio.gather(*(check_systemd_service(name) for name in names))
     docker_services = await check_docker_containers()
     services.extend(docker_services)
     return services
 
 
+async def _known_unit(service: str) -> str:
+    name = service.removesuffix(".service")
+    if name not in await managed_service_names():
+        raise HTTPException(status_code=404, detail="Unknown managed service")
+    return name
+
+
 @router.get("/logs/{service}")
-async def stream_logs(service: str, lines: int = 100):
-    logs = await tail_systemd_logs(service, lines)
+async def stream_logs(service: str, lines: int = Query(100, ge=1, le=500)):
+    if service.removesuffix(".service") in await managed_service_names():
+        logs = await tail_systemd_logs(service, lines)
+    else:
+        containers = await check_docker_containers()
+        if service not in {c["name"] for c in containers}:
+            raise HTTPException(status_code=404, detail="Unknown service")
+        logs = await tail_docker_logs(service, lines)
     return {"service": service, "logs": logs}
 
 
 @router.post("/services/{service}/restart")
 async def restart_service(service: str):
+    service = await _known_unit(service)
     result = await run_systemctl_command(service, "restart")
     if result["returncode"] != 0:
         raise HTTPException(status_code=500, detail=result["stderr"])
@@ -63,6 +78,7 @@ async def restart_service(service: str):
 
 @router.post("/services/{service}/start")
 async def start_service(service: str):
+    service = await _known_unit(service)
     result = await run_systemctl_command(service, "start")
     if result["returncode"] != 0:
         raise HTTPException(status_code=500, detail=result["stderr"])
@@ -71,6 +87,7 @@ async def start_service(service: str):
 
 @router.post("/services/{service}/stop")
 async def stop_service(service: str):
+    service = await _known_unit(service)
     result = await run_systemctl_command(service, "stop")
     if result["returncode"] != 0:
         raise HTTPException(status_code=500, detail=result["stderr"])
@@ -146,7 +163,7 @@ async def restore_snapshot(snapshot_name: str):
 async def security_status():
     checks = await run_security_audit()
     overall = "pass" if all(c["pass"] for c in checks) else "fail"
-    return {"checks": checks, "overall": overall}
+    return {"checks": checks, "overall": overall, "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
 
 
 @router.post("/config/validate")
@@ -154,3 +171,64 @@ async def validate_configs():
     results = await validate_all_configs()
     valid = all(r["valid"] for r in results)
     return {"valid": valid, "details": results}
+
+# ── Command Center (cron reports / briefings) ──────────────────────────────
+from dashboard.backend.services import command_center, agent_roster, live_config
+from dashboard.backend.services.agent_status import check_all_agents
+
+
+@router.get("/agents/status")
+async def agents_status():
+    return check_all_agents()
+
+
+@router.get("/models/providers")
+async def models_providers():
+    from dashboard.backend.services.model_providers import check_all_providers
+    return await check_all_providers()
+
+
+@router.get("/command-center/summary")
+async def command_center_summary():
+    return command_center.summary()
+
+
+@router.get("/command-center/categories")
+async def command_center_categories():
+    return command_center.categories()
+
+
+@router.get("/command-center/jobs")
+async def command_center_jobs(category: Optional[str] = None, outputs: bool = False):
+    return command_center.list_jobs(category=category, include_outputs=outputs)
+
+
+@router.get("/command-center/reports")
+async def command_center_reports(limit: int = 12):
+    return command_center.recent_reports(limit)
+
+
+@router.get("/command-center/report/{job_id}")
+async def command_center_report(job_id: str, filename: Optional[str] = None):
+    text = command_center.report_text(job_id, filename)
+    if text is None:
+        raise HTTPException(status_code=404, detail="report not found")
+    return {"job_id": job_id, "file": filename, "content": text}
+
+
+@router.get("/live/overview")
+async def live_overview():
+    """One read-only live view for the agent, model, and provider panels."""
+    return await live_config.overview()
+
+
+@router.get("/models")
+async def models_list():
+    """Current model configuration and scheduled-job pins, not a static registry."""
+    return live_config.model_snapshot()
+
+
+@router.get("/agents")
+async def agents_roster():
+    """Read-only profile metadata and work status; no prompts or credentials."""
+    return agent_roster.roster()

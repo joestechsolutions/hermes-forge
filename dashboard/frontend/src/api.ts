@@ -4,6 +4,7 @@ const API_BASE = '/api/v1';
 export interface ServiceStatus {
   name: string;
   state: string;
+  kind?: 'systemd' | 'docker';
   port?: number;
   uptime?: string;
   last_log?: string;
@@ -80,3 +81,12 @@ export async function validateConfigs() {
   if (!resp.ok) throw new Error('Failed to validate configs');
   return resp.json();
 }
+
+export async function fetchModels(): Promise<any[]> {
+  const resp = await fetch(`${API_BASE}/models`);
+  if (!resp.ok) throw new Error('Failed to fetch models');
+  return resp.json();
+}
+
+// Alias for fetchSecurityStatus
+export const fetchSecurityAudit = fetchSecurityStatus;
