@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import asyncio
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -173,7 +174,7 @@ async def validate_configs():
     return {"valid": valid, "details": results}
 
 # ── Command Center (cron reports / briefings) ──────────────────────────────
-from dashboard.backend.services import command_center, agent_roster, live_config, agent_activity
+from dashboard.backend.services import command_center, agent_roster, live_config, agent_activity, workflow
 from dashboard.backend.services.agent_status import check_all_agents
 
 
@@ -226,6 +227,13 @@ async def live_overview():
 async def models_list():
     """Current model configuration and scheduled-job pins, not a static registry."""
     return live_config.model_snapshot()
+
+
+@router.get("/workflow")
+async def workflow_status():
+    """Sanitized lead/delegation/advisor activity from the Hermes ledger."""
+    home = Path(os.environ.get("HERMES_HOME", str(Path.home() / ".hermes"))).expanduser()
+    return await asyncio.to_thread(workflow.read_workflow, home)
 
 
 @router.get("/agents")

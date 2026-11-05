@@ -63,6 +63,55 @@ export interface AgentDetailData {
   generated_at: string;
 }
 
+export interface WorkflowLead {
+  name: string;
+  role: string;
+  active_now: boolean;
+  current_action: string;
+  model: string | null;
+  last_activity_at: string | null;
+}
+
+export interface WorkflowTask {
+  index: number;
+  label: string;
+  role: 'worker' | 'advisor';
+  stage: string;
+  status: string;
+  active_now: boolean;
+  model: string | null;
+  duration_seconds: number;
+  exit_reason: string | null;
+  schema_valid: boolean | null;
+}
+
+export interface WorkflowEvent {
+  actor: string;
+  action: string;
+  at: string;
+  kind: string;
+}
+
+export interface WorkflowData {
+  available: boolean;
+  lead: WorkflowLead;
+  run: {
+    state: string;
+    delivery_state: string | null;
+    active_now: boolean;
+    stale_reason: 'no-recent-update' | 'owner-not-running' | 'owner-and-update-stale' | null;
+    dispatched_at: string | null;
+    completed_at: string | null;
+    updated_at: string | null;
+    delivered_at: string | null;
+  } | null;
+  workers: WorkflowTask[];
+  advisors: WorkflowTask[];
+  verification: { state: string; label: string; at: string | null };
+  events: WorkflowEvent[];
+  generated_at: string;
+}
+
 export function relative(iso: string | null, empty = 'Not recorded'): string {
   if (!iso) return empty;
   const then = new Date(iso).getTime();

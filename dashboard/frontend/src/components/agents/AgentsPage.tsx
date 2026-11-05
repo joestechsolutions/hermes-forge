@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import AgentDetail from './AgentDetail';
-import { clock, relative, Roster, statusClass, statusLabel } from './agentTypes';
+import WorkflowMap from './WorkflowMap';
+import { clock, relative, Roster, statusClass, statusLabel, WorkflowData } from './agentTypes';
 
 export default function AgentsPage() {
   const [roster, setRoster] = useState<Roster | null>(null);
+  const [workflow, setWorkflow] = useState<WorkflowData | null>(null);
+  const [workflowError, setWorkflowError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showMobileDetail, setShowMobileDetail] = useState(false);
   const [error, setError] = useState(false);
@@ -23,13 +26,27 @@ export default function AgentsPage() {
         }
       } catch { if (mounted) setError(true); }
     };
+    const loadWorkflow = async () => {
+      try {
+        const response = await fetch('/api/v1/workflow', { cache: 'no-store', credentials: 'same-origin' });
+        if (!response.ok) throw new Error('unavailable');
+        const next = await response.json() as WorkflowData;
+        if (!next.lead || !next.verification || !('run' in next) || !Array.isArray(next.workers) || !Array.isArray(next.advisors) || !Array.isArray(next.events)) throw new Error('invalid');
+        if (mounted) { setWorkflow(next); setWorkflowError(false); }
+      } catch { if (mounted) setWorkflowError(true); }
+    };
     load();
-    const timer = setInterval(load, 15_000);
+    loadWorkflow();
+    const timer = setInterval(() => { load(); loadWorkflow(); }, 15_000);
     return () => { mounted = false; clearInterval(timer); };
   }, []);
 
   const agents = roster?.agents || [];
-  const working = agents.filter(agent => agent.active_now).length;
+  const delegatedWorking = [...(workflow?.workers || []), ...(workflow?.advisors || [])].filter(task => task.active_now).length;
+  const working = agents.filter(agent => agent.active_now).length + (workflow?.lead.active_now ? 1 : 0) + delegatedWorking;
+  const workingCaption = workflow?.lead.active_now
+    ? delegatedWorking ? `Lurkr + ${delegatedWorking} delegated` : 'Includes Lurkr'
+    : delegatedWorking ? `${delegatedWorking} delegated tasks` : 'Agent profiles';
   const attention = agents.filter(agent => agent.failing_jobs > 0).length;
   const nextUp = agents.filter(agent => agent.next_run_at).sort((a, b) => new Date(a.next_run_at || '').getTime() - new Date(b.next_run_at || '').getTime())[0];
 
@@ -44,10 +61,12 @@ export default function AgentsPage() {
       {error && <div role="status" className="border border-[#ffbd65]/40 bg-[#10262b] rounded-xl p-3 text-sm text-[#ffbd65] mb-4">Could not refresh the roster. Existing values may be stale.</div>}
 
       <section aria-label="Fleet activity summary" className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
-        <div className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-3 sm:p-4"><p className="text-[#8fa8a5] text-[10px] sm:text-xs uppercase tracking-wider">Working now</p><p className="text-[#4ecdc4] text-2xl font-bold mt-1">{working}</p></div>
+        <div className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-3 sm:p-4"><p className="text-[#8fa8a5] text-[10px] sm:text-xs uppercase tracking-wider">Working now</p><p className="text-[#4ecdc4] text-2xl font-bold mt-1">{working}</p><p className="text-[#8fa8a5] text-[10px] mt-0.5">{workingCaption}</p></div>
         <div className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-3 sm:p-4"><p className="text-[#8fa8a5] text-[10px] sm:text-xs uppercase tracking-wider">Needs attention</p><p className={`text-2xl font-bold mt-1 ${attention ? 'text-[#ffbd65]' : 'text-[#d9ece9]'}`}>{attention}</p></div>
         <div className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-3 sm:p-4"><p className="text-[#8fa8a5] text-[10px] sm:text-xs uppercase tracking-wider">Next run</p><p className="text-sm font-semibold mt-1 truncate">{nextUp ? nextUp.name : 'None'}</p><p className="text-[#4ecdc4] text-[11px] mt-0.5">{nextUp ? relative(nextUp.next_run_at, 'Not scheduled') : 'Not scheduled'}</p></div>
       </section>
+
+      <div className={showMobileDetail ? 'hidden lg:block' : 'block'}><WorkflowMap data={workflow} error={workflowError} /></div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] gap-4 items-start">
         <section aria-label="Installed agents" className={`${showMobileDetail ? 'hidden' : 'block'} lg:block space-y-3`}>
