@@ -204,14 +204,24 @@ def read_workflow(home: Path) -> dict[str, Any]:
                 event_json = {}
             manifest = _manifest(home, str(row["delegation_id"]))
             updated = float(row["updated_at"] or row["dispatched_at"] or 0)
-            batch_active = row["state"] == "running" and now - updated <= ACTIVE_WINDOW_S and _pid_alive(row["owner_pid"])
+            recent_update = now - updated <= ACTIVE_WINDOW_S
+            owner_alive = _pid_alive(row["owner_pid"])
+            batch_active = row["state"] == "running" and recent_update and owner_alive
             run_state = str(row["state"] or "unknown")
+            stale_reason = None
             if run_state == "running" and not batch_active:
                 run_state = "stale"
+                if not recent_update and not owner_alive:
+                    stale_reason = "owner-and-update-stale"
+                elif not recent_update:
+                    stale_reason = "no-recent-update"
+                else:
+                    stale_reason = "owner-not-running"
             run = {
                 "state": run_state,
                 "delivery_state": _clean(row["delivery_state"], 40),
                 "active_now": batch_active,
+                "stale_reason": stale_reason,
                 "dispatched_at": _iso(row["dispatched_at"]),
                 "completed_at": _iso(row["completed_at"]),
                 "updated_at": _iso(row["updated_at"]),

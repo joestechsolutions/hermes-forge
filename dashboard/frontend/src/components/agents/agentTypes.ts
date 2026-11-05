@@ -99,6 +99,7 @@ export interface WorkflowData {
     state: string;
     delivery_state: string | null;
     active_now: boolean;
+    stale_reason: 'no-recent-update' | 'owner-not-running' | 'owner-and-update-stale' | null;
     dispatched_at: string | null;
     completed_at: string | null;
     updated_at: string | null;

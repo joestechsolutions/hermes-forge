@@ -82,8 +82,21 @@ def test_stale_running_batch_is_not_active_and_missing_manifest_is_tolerated(tmp
     (home / "cache" / "delegation" / "live" / "deleg_test" / "manifest.json").write_text("{torn")
     data = read_workflow(home)
     assert data["run"]["state"] == "stale"
+    assert data["run"]["stale_reason"] == "owner-and-update-stale"
     assert data["run"]["active_now"] is False
     assert all(task["active_now"] is False for task in data["workers"] + data["advisors"])
+
+
+def test_recent_update_with_dead_owner_has_a_distinct_stale_reason(tmp_path):
+    home = make_workflow_home(tmp_path)
+    database = sqlite3.connect(home / "state.db")
+    database.execute("UPDATE async_delegations SET state='running', delivery_state='pending', completed_at=NULL, delivered_at=NULL, updated_at=?, owner_pid=?, event_json=?", (time.time(), 99999999, json.dumps({"status": "running", "results": []})))
+    database.commit()
+    database.close()
+    data = read_workflow(home)
+    assert data["run"]["state"] == "stale"
+    assert data["run"]["stale_reason"] == "owner-not-running"
+    assert data["run"]["active_now"] is False
 
 
 def test_unattributed_delegation_is_never_attached_to_the_lead(tmp_path):
