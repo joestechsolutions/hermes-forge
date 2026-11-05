@@ -42,7 +42,11 @@ export default function AgentsPage() {
   }, []);
 
   const agents = roster?.agents || [];
-  const working = agents.filter(agent => agent.active_now).length + (workflow?.lead.active_now ? 1 : 0);
+  const delegatedWorking = [...(workflow?.workers || []), ...(workflow?.advisors || [])].filter(task => task.active_now).length;
+  const working = agents.filter(agent => agent.active_now).length + (workflow?.lead.active_now ? 1 : 0) + delegatedWorking;
+  const workingCaption = workflow?.lead.active_now
+    ? delegatedWorking ? `Lurkr + ${delegatedWorking} delegated` : 'Includes Lurkr'
+    : delegatedWorking ? `${delegatedWorking} delegated tasks` : 'Agent profiles';
   const attention = agents.filter(agent => agent.failing_jobs > 0).length;
   const nextUp = agents.filter(agent => agent.next_run_at).sort((a, b) => new Date(a.next_run_at || '').getTime() - new Date(b.next_run_at || '').getTime())[0];
 
@@ -57,7 +61,7 @@ export default function AgentsPage() {
       {error && <div role="status" className="border border-[#ffbd65]/40 bg-[#10262b] rounded-xl p-3 text-sm text-[#ffbd65] mb-4">Could not refresh the roster. Existing values may be stale.</div>}
 
       <section aria-label="Fleet activity summary" className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
-        <div className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-3 sm:p-4"><p className="text-[#8fa8a5] text-[10px] sm:text-xs uppercase tracking-wider">Working now</p><p className="text-[#4ecdc4] text-2xl font-bold mt-1">{working}</p><p className="text-[#8fa8a5] text-[10px] mt-0.5">{workflow?.lead.active_now ? 'Includes Lurkr' : 'Agent profiles'}</p></div>
+        <div className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-3 sm:p-4"><p className="text-[#8fa8a5] text-[10px] sm:text-xs uppercase tracking-wider">Working now</p><p className="text-[#4ecdc4] text-2xl font-bold mt-1">{working}</p><p className="text-[#8fa8a5] text-[10px] mt-0.5">{workingCaption}</p></div>
         <div className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-3 sm:p-4"><p className="text-[#8fa8a5] text-[10px] sm:text-xs uppercase tracking-wider">Needs attention</p><p className={`text-2xl font-bold mt-1 ${attention ? 'text-[#ffbd65]' : 'text-[#d9ece9]'}`}>{attention}</p></div>
         <div className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-3 sm:p-4"><p className="text-[#8fa8a5] text-[10px] sm:text-xs uppercase tracking-wider">Next run</p><p className="text-sm font-semibold mt-1 truncate">{nextUp ? nextUp.name : 'None'}</p><p className="text-[#4ecdc4] text-[11px] mt-0.5">{nextUp ? relative(nextUp.next_run_at, 'Not scheduled') : 'Not scheduled'}</p></div>
       </section>
