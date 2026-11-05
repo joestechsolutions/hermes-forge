@@ -130,17 +130,26 @@ async def restore_snapshot(snapshot_name: str):
     """
     Restore system state from a snapshot by name (without .json extension).
 
-    The snapshot file is looked up by pattern in the snapshots directory.
+    The exact snapshot name is preferred. A prefix is accepted only when it
+    identifies exactly one snapshot.
     """
     sm = StateManager(Path.home() / ".hermes")
     snaps = sm.list_snapshots()
 
-    # Find snapshot by name (exact match first, then prefix match)
-    snapshot_path = None
-    for s in snaps:
-        if s["name"] == snapshot_name or s["name"].startswith(snapshot_name):
-            snapshot_path = Path(s["file"])
-            break
+    exact = next((s for s in snaps if s["name"] == snapshot_name), None)
+    if exact is not None:
+        selected = exact
+    else:
+        prefix_matches = [s for s in snaps if s["name"].startswith(snapshot_name)]
+        if len(prefix_matches) > 1:
+            names = ", ".join(sorted(s["name"] for s in prefix_matches))
+            raise HTTPException(
+                status_code=409,
+                detail=f"Snapshot prefix '{snapshot_name}' is ambiguous; matches: {names}",
+            )
+        selected = prefix_matches[0] if prefix_matches else None
+
+    snapshot_path = Path(selected["file"]) if selected is not None else None
 
     if snapshot_path is None or not snapshot_path.exists():
         raise HTTPException(status_code=404, detail=f"Snapshot '{snapshot_name}' not found")
