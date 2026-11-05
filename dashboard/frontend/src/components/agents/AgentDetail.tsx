@@ -72,6 +72,7 @@ export default function AgentDetail({ agentId, onBack }: Props) {
                 <span className={`text-[10px] whitespace-nowrap ${session.active ? 'text-[#4ecdc4]' : 'text-[#8fa8a5]'}`}>{session.active ? 'Working now' : session.ended_at ? 'Completed' : 'Idle'}</span>
               </div>
               {session.activity && session.activity !== session.title && <p className="text-[#b7d2cd] text-xs mt-2">{session.activity}</p>}
+              {session.result && <details open={session.active ? true : undefined} className="mt-3 border-t border-[#1e383b] pt-2"><summary className="cursor-pointer min-h-11 flex items-center text-[#4ecdc4] text-xs">Final session result</summary><pre className="whitespace-pre-wrap break-words text-[#b7d2cd] text-xs leading-relaxed bg-[#071317] rounded-lg p-3 max-h-96 overflow-auto">{session.result}</pre>{session.result_truncated && <p className="text-[#8fa8a5] text-[10px] mt-2">Result capped at 6,000 characters.</p>}</details>}
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-[#8fa8a5] text-[11px] mt-3">
                 <span>{relative(session.last_activity_at)}</span><span>{session.tool_call_count} tool calls</span>{session.model && <span className="font-mono">{session.model}</span>}
               </div>

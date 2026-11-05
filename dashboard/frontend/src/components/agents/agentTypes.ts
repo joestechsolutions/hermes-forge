@@ -26,6 +26,8 @@ export interface Roster {
 export interface AgentSession {
   title: string;
   activity: string | null;
+  result: string | null;
+  result_truncated: boolean;
   last_activity_at: string | null;
   started_at: string | null;
   ended_at: string | null;
@@ -81,7 +83,7 @@ export function clock(iso: string | null): string {
 export function statusLabel(agent: AgentSummary): string {
   if (agent.status === 'needs-attention') return 'Needs attention';
   if (agent.active_now) return 'Working now';
-  if (agent.status === 'completed') return 'Latest result';
+  if (agent.status === 'completed') return 'Idle · last result';
   return 'Ready';
 }
 

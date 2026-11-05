@@ -18,19 +18,28 @@ def make_agent_home(tmp_path):
     database = sqlite3.connect(profile / "state.db")
     database.execute(
         """CREATE TABLE sessions (
-            title TEXT, last_activity_description TEXT, last_activity_at REAL,
+            id TEXT, title TEXT, last_activity_description TEXT, last_activity_at REAL,
             started_at REAL, ended_at REAL, message_count INTEGER,
             tool_call_count INTEGER, model TEXT, archived INTEGER
         )"""
     )
     database.execute("CREATE TABLE session_turn_leases (conversation_id TEXT, expires_at REAL)")
+    database.execute("CREATE TABLE messages (session_id TEXT, role TEXT, content TEXT, timestamp REAL, active INTEGER, compacted INTEGER)")
     database.execute(
-        "INSERT INTO sessions VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)",
-        ("Reconcile affiliate results", "Checking affiliate monitor output", now, now - 20, None, 8, 3, "kimi-k3.1-pro:cloud"),
+        "INSERT INTO sessions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)",
+        ("s-active", "Reconcile affiliate results", "Checking affiliate monitor output", now, now - 20, None, 8, 3, "kimi-k3.1-pro:cloud"),
     )
     database.execute(
-        "INSERT INTO sessions VALUES (?, '', ?, ?, ?, ?, ?, ?, 0)",
-        ("Earlier revenue review", now - 5000, now - 5100, now - 4900, 4, 1, "glm-5.3:cloud"),
+        "INSERT INTO sessions VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, 0)",
+        ("s-old", "Earlier revenue review", now - 5000, now - 5100, now - 4900, 4, 1, "glm-5.3:cloud"),
+    )
+    database.executemany(
+        "INSERT INTO messages VALUES (?, ?, ?, ?, 1, 0)",
+        [
+            ("s-active", "user", "private user prompt", now - 15),
+            ("s-active", "assistant", "Reconciled 84 links; no payout total claimed.", now),
+            ("s-old", "assistant", "Completed the earlier review.", now - 4900),
+        ],
     )
     database.commit()
     database.close()
@@ -58,13 +67,23 @@ def test_detail_shows_real_current_activity_and_owned_output(tmp_path, monkeypat
     assert detail["agent"]["status"] == "active"
     assert detail["sessions"][0]["tool_call_count"] == 3
     assert detail["sessions"][0]["model"] == "kimi-k3.1-pro:cloud"
+    assert detail["sessions"][0]["result"] == "Reconciled 84 links; no payout total claimed."
+    assert detail["sessions"][1]["result"] == "Completed the earlier review."
     assert len(detail["jobs"]) == 1
     assert detail["jobs"][0]["latest_output"]["body"] == "Checked affiliate events; no payout total claimed."
     serialized = json.dumps(detail)
     assert "private prompt" not in serialized
+    assert "private user prompt" not in serialized
     assert "never-serialize" not in serialized
     assert "system_prompt" not in serialized
     assert "chat_id" not in serialized
+
+
+def test_final_result_redacts_secret_shaped_values():
+    from dashboard.backend.services.agent_sessions import _result
+    result, truncated = _result("api_key = abcdefghijklmnop\nBearer abcdefghijklmnop\nDone")
+    assert result == "api_key = [REDACTED]\n[REDACTED]\nDone"
+    assert truncated is False
 
 
 def test_old_ended_session_is_not_mislabeled_working(tmp_path, monkeypatch):
