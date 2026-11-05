@@ -19,19 +19,23 @@ def make_agent_home(tmp_path):
     database.execute(
         """CREATE TABLE sessions (
             id TEXT, title TEXT, last_activity_description TEXT, last_activity_at REAL,
-            started_at REAL, ended_at REAL, message_count INTEGER,
-            tool_call_count INTEGER, model TEXT, archived INTEGER
+            started_at REAL, ended_at REAL,
+            message_count INTEGER, tool_call_count INTEGER, model TEXT, hidden INTEGER, archived INTEGER
         )"""
     )
     database.execute("CREATE TABLE session_turn_leases (conversation_id TEXT, expires_at REAL)")
     database.execute("CREATE TABLE messages (session_id TEXT, role TEXT, content TEXT, timestamp REAL, active INTEGER, compacted INTEGER)")
     database.execute(
-        "INSERT INTO sessions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)",
+        "INSERT INTO sessions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)",
         ("s-active", "Reconcile affiliate results", "Checking affiliate monitor output", now, now - 20, None, 8, 3, "kimi-k3.1-pro:cloud"),
     )
     database.execute(
-        "INSERT INTO sessions VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, 0)",
+        "INSERT INTO sessions VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, 0, 0)",
         ("s-old", "Earlier revenue review", now - 5000, now - 5100, now - 4900, 4, 1, "glm-5.3:cloud"),
+    )
+    database.execute(
+        "INSERT INTO sessions VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, 1, 0)",
+        ("s-hidden", "Hidden private session", now + 1000, now + 900, now + 950, 0, 0, "glm-5.3:cloud"),
     )
     database.executemany(
         "INSERT INTO messages VALUES (?, ?, ?, ?, 1, 0)",
@@ -72,6 +76,7 @@ def test_detail_shows_real_current_activity_and_owned_output(tmp_path, monkeypat
     assert len(detail["jobs"]) == 1
     assert detail["jobs"][0]["latest_output"]["body"] == "Checked affiliate events; no payout total claimed."
     serialized = json.dumps(detail)
+    assert "Hidden private session" not in serialized
     assert "private prompt" not in serialized
     assert "private user prompt" not in serialized
     assert "never-serialize" not in serialized
@@ -84,6 +89,16 @@ def test_final_result_redacts_secret_shaped_values():
     result, truncated = _result("api_key = abcdefghijklmnop\nBearer abcdefghijklmnop\nDone")
     assert result == "api_key = [REDACTED]\n[REDACTED]\nDone"
     assert truncated is False
+
+
+def test_redaction_covers_json_midline_and_common_token_prefixes():
+    from dashboard.backend.services.agent_sessions import _result
+    secrets = ["json-secret", "mid-secret", "ghp_" + "a" * 20, "AKIA" + "A" * 16, "xoxb-" + "b" * 20]
+    result, _ = _result('{"api_key": "json-secret"} password=mid-secret ' + " ".join(secrets[2:]))
+    assert result is not None
+    for secret in secrets:
+        assert secret not in result
+    assert result.count("[REDACTED]") == 5
 
 
 def test_old_ended_session_is_not_mislabeled_working(tmp_path, monkeypatch):

@@ -159,7 +159,7 @@ def roster(home: Path | None = None) -> dict[str, Any]:
         elif activity["sessions"]:
             current_work = f"Latest session: {activity['sessions'][0]['title']}"
         else:
-            current_work = "Ready — no work recorded yet"
+            current_work = "No recorded sessions or job results"
         cards.append({
             "id": key, "name": name, "role": role, "description": description,
             "status": status, "current_work": current_work,

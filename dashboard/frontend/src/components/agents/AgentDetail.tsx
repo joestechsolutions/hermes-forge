@@ -66,7 +66,7 @@ export default function AgentDetail({ agentId, onBack }: Props) {
         <section aria-label="Recent agent sessions" className="space-y-3">
           {data.sessions.length === 0 && <p className="text-[#8fa8a5] text-sm bg-[#0c1e22] border border-[#1e383b] rounded-xl p-5">No interactive sessions recorded. Check Scheduled work for automated results.</p>}
           {data.sessions.map((session, index) => (
-            <article key={`${session.last_activity_at}-${index}`} className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-4">
+            <article key={`${session.started_at}-${session.title}-${index}`} className="bg-[#0c1e22] border border-[#1e383b] rounded-xl p-4">
               <div className="flex justify-between items-start gap-3">
                 <h3 className="font-semibold text-sm leading-relaxed">{session.title}</h3>
                 <span className={`text-[10px] whitespace-nowrap ${session.active ? 'text-[#4ecdc4]' : 'text-[#8fa8a5]'}`}>{session.active ? 'Working now' : session.ended_at ? 'Completed' : 'Idle'}</span>

@@ -16,9 +16,11 @@ from typing import Any
 ACTIVE_WINDOW_S = 120
 RESULT_LIMIT = 6000
 SECRET_ASSIGNMENT = re.compile(
-    r"(?im)^(\s*(?:api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)\s*[:=]\s*)\S+"
+    r"(?i)(\b(?:api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)\b[\"']?\s*[:=]\s*)([\"']?)([^\s,\"'}]+)"
 )
-SECRET_TOKEN = re.compile(r"(?i)\b(?:sk-[A-Za-z0-9_-]{12,}|Bearer\s+[A-Za-z0-9._~+/-]{12,})")
+SECRET_TOKEN = re.compile(
+    r"(?i)\b(?:sk-[A-Za-z0-9_-]{12,}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[A-Z0-9]{16}|xox[baprs]-[A-Za-z0-9-]{12,}|Bearer\s+[A-Za-z0-9._~+/-]{12,})"
+)
 
 
 def _clean(value: Any, limit: int = 180) -> str | None:
@@ -38,7 +40,7 @@ def _iso(value: Any) -> str | None:
 def _result(value: Any) -> tuple[str | None, bool]:
     if not isinstance(value, str):
         return None, False
-    text = SECRET_ASSIGNMENT.sub(r"\1[REDACTED]", value.replace("\x00", "").strip())
+    text = SECRET_ASSIGNMENT.sub(lambda match: match.group(1) + match.group(2) + "[REDACTED]", value.replace("\x00", "").strip())
     text = SECRET_TOKEN.sub("[REDACTED]", text)
     return text[:RESULT_LIMIT] or None, len(text) > RESULT_LIMIT
 
@@ -61,7 +63,7 @@ def read_sessions(profile: Path, limit: int = 5) -> dict[str, Any]:
                 """SELECT id, title, last_activity_description, last_activity_at,
                           started_at, ended_at, message_count, tool_call_count, model
                    FROM sessions
-                   WHERE coalesce(archived, 0) = 0
+                   WHERE coalesce(archived, 0) = 0 AND coalesce(hidden, 0) = 0
                    ORDER BY last_activity_at DESC LIMIT ?""",
                 (max(1, min(limit, 10)),),
             ).fetchall()

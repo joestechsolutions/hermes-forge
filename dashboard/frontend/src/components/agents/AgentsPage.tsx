@@ -59,7 +59,7 @@ export default function AgentsPage() {
                 <div><h2 className="font-bold text-base">{agent.name}</h2><p className="text-[#4ecdc4] text-[11px] mt-0.5">{agent.role}</p></div>
                 <span className={`text-[11px] font-semibold px-2.5 py-1 border rounded-full whitespace-nowrap ${statusClass(agent)}`}>{statusLabel(agent)}</span>
               </div>
-              <p className="text-[#b7d2cd] text-xs mt-3 line-clamp-2"><span className="text-[#8fa8a5]">{agent.active_now ? 'Now: ' : 'Last work: '}</span>{agent.current_work}</p>
+              <p className="text-[#b7d2cd] text-xs mt-3 line-clamp-2"><span className="text-[#8fa8a5]">{agent.active_now ? 'Now: ' : agent.status === 'ready' ? '' : 'Last work: '}</span>{agent.current_work.replace(/^Latest result:\s*/, '')}</p>
               <div className="flex justify-between gap-3 text-[#8fa8a5] text-[11px] mt-3 pt-3 border-t border-[#1e383b]"><span>Last work {relative(agent.last_work_at)}</span><span>Next {relative(agent.next_run_at, 'not scheduled')}</span></div>
             </button>
           ))}
