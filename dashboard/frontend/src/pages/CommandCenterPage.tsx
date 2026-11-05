@@ -112,7 +112,7 @@ export default function CommandCenterPage() {
       <div className="flex items-baseline justify-between mb-1 gap-2">
         <h1 className="text-xl sm:text-2xl font-bold text-[#02a0a0] tracking-wider">COMMAND CENTER</h1>
         <span className="text-xs text-[#5d7573]">
-          {summary ? `refreshed ${fmtWhen(summary.generated_at)} · ${summary.live}/${summary.total_jobs} live` : ''}
+          {summary ? `refreshed ${fmtWhen(summary.generated_at)} · ${summary.live}/${summary.total_jobs} scheduled jobs live` : ''}
         </span>
       </div>
       <p className="text-sm text-[#8fa8a5] mb-6">Every agent, scheduled job, and report — in one place.</p>
@@ -125,7 +125,7 @@ export default function CommandCenterPage() {
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
           <div className="border border-[#1e383b] bg-[#0c1e22] rounded-2xl p-4">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-[#5d7573] mb-2">Fleet</div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-[#5d7573] mb-2">Scheduled jobs</div>
             <div className="text-3xl font-bold text-[#02a0a0]">{summary.live}<span className="text-lg text-[#8fa8a5]">/{summary.total_jobs}</span></div>
             <div className="text-xs text-[#8fa8a5] mt-1">live jobs · {summary.failing} failing</div>
             {summary.failing_names.length > 0 && (

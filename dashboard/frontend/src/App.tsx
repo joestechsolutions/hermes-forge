@@ -7,8 +7,10 @@ import SecurityPage from './pages/SecurityPage';
 import SnapshotsPage from './pages/SnapshotsPage';
 import CommandCenterPage from './pages/CommandCenterPage';
 import ServicesPage from './pages/ServicesPage';
+import AgentsPage from './components/agents/AgentsPage';
 
 const TITLES: Record<NavItem, string> = {
+  agents: 'Agents',
   dashboard: 'Dashboard',
   briefings: 'Command Center',
   services: 'Services',
@@ -19,11 +21,13 @@ const TITLES: Record<NavItem, string> = {
 };
 
 export default function App() {
-  const [activeNav, setActiveNav] = useState<NavItem>('dashboard');
+  const [activeNav, setActiveNav] = useState<NavItem>('agents');
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const renderPage = () => {
     switch (activeNav) {
+      case 'agents':
+        return <AgentsPage />;
       case 'dashboard':
         return <DashboardPage />;
       case 'briefings':

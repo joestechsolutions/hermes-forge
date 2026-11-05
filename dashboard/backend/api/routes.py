@@ -173,13 +173,13 @@ async def validate_configs():
     return {"valid": valid, "details": results}
 
 # ── Command Center (cron reports / briefings) ──────────────────────────────
-from dashboard.backend.services import command_center, agent_roster, live_config
+from dashboard.backend.services import command_center, agent_roster, live_config, agent_activity
 from dashboard.backend.services.agent_status import check_all_agents
 
 
 @router.get("/agents/status")
 async def agents_status():
-    return check_all_agents()
+    return await asyncio.to_thread(check_all_agents)
 
 
 @router.get("/models/providers")
@@ -231,4 +231,13 @@ async def models_list():
 @router.get("/agents")
 async def agents_roster():
     """Read-only profile metadata and work status; no prompts or credentials."""
-    return agent_roster.roster()
+    return await asyncio.to_thread(agent_roster.roster)
+
+
+@router.get("/agents/{profile_id}")
+async def agent_activity_detail(profile_id: str):
+    """Session metadata, owned jobs, and bounded outputs for one agent."""
+    try:
+        return await asyncio.to_thread(agent_activity.agent_detail, profile_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Agent not found")
