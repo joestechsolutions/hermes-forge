@@ -28,9 +28,9 @@ function relative(iso: string | null): string {
 }
 
 const STATUS_LABEL: Record<Agent['status'], string> = {
-  ready: 'Ready',
+  ready: 'No work yet',
   active: 'Working',
-  completed: 'Idle · last result',
+  completed: 'Idle',
   'needs-attention': 'Needs attention',
 };
 

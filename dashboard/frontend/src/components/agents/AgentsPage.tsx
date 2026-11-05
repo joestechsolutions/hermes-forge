@@ -57,10 +57,10 @@ export default function AgentsPage() {
             <button key={agent.id} aria-pressed={selectedId === agent.id} aria-label={`Open ${agent.name} activity`} onClick={() => { setSelectedId(agent.id); setShowMobileDetail(true); }} className={`w-full text-left bg-[#0c1e22] border rounded-2xl p-4 transition-colors ${selectedId === agent.id ? 'border-[#02a0a0]/70 bg-[#10262b]' : agent.failing_jobs > 0 ? 'border-[#ffbd65]/60 hover:border-[#ffbd65]' : 'border-[#1e383b] hover:border-[#02a0a0]/40'}`}>
               <div className="flex justify-between items-start gap-3">
                 <div><h2 className="font-bold text-base">{agent.name}</h2><p className="text-[#4ecdc4] text-[11px] mt-0.5">{agent.role}</p></div>
-                <span className={`text-[10px] px-2.5 py-1 border rounded-full whitespace-nowrap ${statusClass(agent)}`}>{statusLabel(agent)}</span>
+                <span className={`text-[11px] font-semibold px-2.5 py-1 border rounded-full whitespace-nowrap ${statusClass(agent)}`}>{statusLabel(agent)}</span>
               </div>
-              <p className="text-[#b7d2cd] text-xs mt-3 line-clamp-2">{agent.current_work}</p>
-              <div className="flex justify-between gap-3 text-[#8fa8a5] text-[11px] mt-3 pt-3 border-t border-[#1e383b]"><span>Last work {relative(agent.last_work_at)}</span><span>{agent.active_jobs} scheduled</span></div>
+              <p className="text-[#b7d2cd] text-xs mt-3 line-clamp-2"><span className="text-[#8fa8a5]">{agent.active_now ? 'Now: ' : 'Last work: '}</span>{agent.current_work}</p>
+              <div className="flex justify-between gap-3 text-[#8fa8a5] text-[11px] mt-3 pt-3 border-t border-[#1e383b]"><span>Last work {relative(agent.last_work_at)}</span><span>Next {relative(agent.next_run_at, 'not scheduled')}</span></div>
             </button>
           ))}
         </section>

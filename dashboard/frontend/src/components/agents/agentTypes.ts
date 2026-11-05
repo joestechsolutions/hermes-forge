@@ -83,12 +83,13 @@ export function clock(iso: string | null): string {
 export function statusLabel(agent: AgentSummary): string {
   if (agent.status === 'needs-attention') return 'Needs attention';
   if (agent.active_now) return 'Working now';
-  if (agent.status === 'completed') return 'Idle · last result';
-  return 'Ready';
+  if (agent.status === 'completed') return 'Idle';
+  return 'No work yet';
 }
 
 export function statusClass(agent: AgentSummary): string {
   if (agent.status === 'needs-attention') return 'text-[#ffbd65] border-[#ffbd65]/50 bg-[#ffbd65]/5';
   if (agent.active_now) return 'text-[#4ecdc4] border-[#4ecdc4]/50 bg-[#4ecdc4]/5';
+  if (agent.status === 'completed') return 'text-[#d9ece9] border-[#8fa8a5]/40 bg-[#10262b]';
   return 'text-[#8fa8a5] border-[#1e383b] bg-[#10262b]';
 }

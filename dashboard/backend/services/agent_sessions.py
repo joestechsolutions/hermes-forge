@@ -116,7 +116,7 @@ def read_sessions(profile: Path, limit: int = 5) -> dict[str, Any]:
     active_now = bool(leases > 0 or (latest and latest["active"]))
     current_title = None
     if active_now and latest:
-        current_title = latest["activity"] or latest["title"] if latest["ended_at"] is None else "Active agent session"
+        current_title = (latest["activity"] or latest["title"]) if latest["ended_at"] is None else "Active agent session"
     return {
         "available": True,
         "active_now": active_now,
