@@ -31,7 +31,7 @@ export default function AgentsPage() {
         const response = await fetch('/api/v1/workflow', { cache: 'no-store', credentials: 'same-origin' });
         if (!response.ok) throw new Error('unavailable');
         const next = await response.json() as WorkflowData;
-        if (!next.lead || !Array.isArray(next.workers) || !Array.isArray(next.advisors) || !Array.isArray(next.events)) throw new Error('invalid');
+        if (!next.lead || !next.verification || !('run' in next) || !Array.isArray(next.workers) || !Array.isArray(next.advisors) || !Array.isArray(next.events)) throw new Error('invalid');
         if (mounted) { setWorkflow(next); setWorkflowError(false); }
       } catch { if (mounted) setWorkflowError(true); }
     };

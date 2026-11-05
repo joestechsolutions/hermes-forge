@@ -20,7 +20,7 @@ function TaskList({ tasks, empty, run }: { tasks: WorkflowTask[]; empty: string;
       <div className="min-w-0"><p className="text-[#d9ece9] truncate">{task.label}</p><p className="text-[#8fa8a5] text-[10px] mt-0.5 truncate">{task.model || 'Delegated agent'}</p></div>
       <span className={`whitespace-nowrap text-[10px] ${task.active_now ? 'text-[#4ecdc4]' : task.status === 'unknown' && run?.state === 'stale' ? 'text-[#ffbd65]' : 'text-[#8fa8a5]'}`}>{taskStatus(task, run)}</span>
     </div>
-  ))}</div>{tasks.some(task => task.status === 'unknown') && <p className="text-[#8fa8a5] text-[10px] mt-2 leading-relaxed">No task result is recorded.{run?.updated_at ? ` Last batch signal ${relative(run.updated_at)}.` : ''}</p>}</>;
+  ))}</div>{tasks.length > 4 && <p className="text-[#8fa8a5] text-[10px] mt-2">+{tasks.length - 4} more in this batch</p>}{tasks.some(task => task.status === 'unknown') && <p className="text-[#8fa8a5] text-[10px] mt-2 leading-relaxed">No task result is recorded.{run?.updated_at ? ` Last batch signal ${relative(run.updated_at)}.` : ''}</p>}</>;
 }
 
 function StepTitle({ number, title, subtitle }: { number: string; title: string; subtitle: string }) {

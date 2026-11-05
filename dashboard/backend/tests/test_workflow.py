@@ -123,6 +123,15 @@ def test_missing_database_degrades_without_inventing_work(tmp_path):
     assert data["verification"]["state"] == "not-recorded"
 
 
+def test_non_numeric_manifest_count_is_ignored_without_losing_ledger_data(tmp_path):
+    home = make_workflow_home(tmp_path)
+    (home / "cache" / "delegation" / "live" / "deleg_test" / "manifest.json").write_text(json.dumps({"task_count": "many", "tasks": []}))
+    data = read_workflow(home)
+    assert data["available"] is True
+    assert len(data["workers"]) == 1
+    assert len(data["advisors"]) == 1
+
+
 def test_workflow_route_requires_auth(monkeypatch):
     from dashboard.backend.main import app
     from dashboard.backend.services import auth_routes

@@ -71,7 +71,7 @@ def _pid_alive(pid: Any) -> bool:
         return False
 
 
-def _task_views(row: sqlite3.Row, task_json: dict[str, Any], event_json: dict[str, Any], manifest: dict[str, Any], batch_active: bool) -> list[dict[str, Any]]:
+def _task_views(task_json: dict[str, Any], event_json: dict[str, Any], manifest: dict[str, Any], batch_active: bool) -> list[dict[str, Any]]:
     raw_goals = task_json.get("goals")
     raw_results = event_json.get("results")
     raw_manifest_tasks = manifest.get("tasks")
@@ -80,7 +80,11 @@ def _task_views(row: sqlite3.Row, task_json: dict[str, Any], event_json: dict[st
     by_index = {item.get("task_index"): item for item in results if isinstance(item, dict)}
     manifest_tasks = raw_manifest_tasks if isinstance(raw_manifest_tasks, list) else []
     manifest_by_index = {item.get("index"): item for item in manifest_tasks if isinstance(item, dict)}
-    count = max(len(goals), len(results), len(manifest_tasks), int(manifest.get("task_count") or 0))
+    try:
+        manifest_count = max(0, int(manifest.get("task_count") or 0))
+    except (TypeError, ValueError):
+        manifest_count = 0
+    count = max(len(goals), len(results), len(manifest_tasks), manifest_count)
     tasks = []
     for index in range(count):
         goal = goals[index] if index < len(goals) and isinstance(goals[index], str) else ""
@@ -227,7 +231,7 @@ def read_workflow(home: Path) -> dict[str, Any]:
                 "updated_at": _iso(row["updated_at"]),
                 "delivered_at": _iso(row["delivered_at"]),
             }
-            tasks = _task_views(row, task_json, event_json, manifest, batch_active)
+            tasks = _task_views(task_json, event_json, manifest, batch_active)
             workers = [_public_task(task) for task in tasks if task["role"] == "worker"]
             advisors = [_public_task(task) for task in tasks if task["role"] == "advisor"]
             verification = _verification(tasks)
